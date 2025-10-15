@@ -119,6 +119,72 @@ static int _vprintf(const char* s, va_list vl)
 	return res;
 }
 
+static char in_buf[1000]; // save
+static char in_buf_last;
+static int has_last ;
+
+static int _oinscanf(int mode)// 0 = int , 1 = string
+{
+    char hi;
+    size_t pos = 0;
+
+	if(has_last) 
+	{
+        in_buf[pos++] = in_buf_last;
+		has_last = 0;
+    } 
+	
+    
+	while( 1 ) 
+	{
+		hi = uart_getc();
+		if(hi == '\r' || hi == '\n' || hi == ' ' || hi == '\t') 
+		{
+
+		}
+		else
+		{
+			in_buf[pos] = hi;
+			pos ++;
+			break;
+		}
+	}
+
+
+    while (1) {
+        hi = uart_getc();
+        if(hi == '\r' || hi == '\n' || hi == ' ' || hi == '\t') 
+		{
+
+            in_buf[pos] = '\0';
+            break;
+        }
+
+		if(mode == 0)
+		{
+			if(( hi > '9' || hi < '0') )
+			{
+				in_buf_last = hi;
+				has_last = 1;
+				in_buf[pos] = '\0';
+				break;
+			}
+		}
+
+        in_buf[pos] = hi;
+		pos ++;
+    }
+
+	if(pos >= 1000)
+	{
+		kprintf("too long");
+	}
+
+	return pos;
+}
+
+
+
 int kprintf(const char* s, ...)
 {
 	int res = 0;
@@ -126,6 +192,104 @@ int kprintf(const char* s, ...)
 	va_start(vl, s);
 	res = _vprintf(s, vl);
 	va_end(vl);
+	return res;
+}
+
+
+
+// input
+// +
+// %d 
+// 
+// &a
+
+int kscanf(const char* s, ...)
+{
+	int res = 0;
+
+	// & 的變數
+	va_list var;
+	va_start(var, s);
+
+
+	
+	char* format = (char*)s;
+	for( ; *format ; format ++ )
+	{
+
+		if(*format == '%')
+		{
+			// 讀的東西 -> in_buf
+
+			format ++;
+			if(*format == 'd')
+			{
+				int inputSize = _oinscanf(0);
+				int inputIdx = 0; 
+				int* curp = va_arg(var, int*);
+
+				inputIdx = 0; 
+				int cur = 0;
+				int negative = 1;
+
+				if(in_buf[inputIdx] == '-')
+				{
+					inputIdx ++;
+					cur = 0;
+					negative = -1;
+				}
+
+				for(  ; inputIdx < inputSize ; inputIdx ++)
+				{
+					if(in_buf[inputIdx] < '0' || in_buf[inputIdx] > '9')
+					{
+						kprintf("no!\n");
+					}
+					cur *= 10;
+					cur += in_buf[inputIdx] - '0';
+				}
+				
+				*curp = cur * negative;
+				res ++;
+				
+			}
+			else if(*format == 's')
+			{
+				int inputSize = _oinscanf(1);
+				int inputIdx = 0; 
+				char* curp = va_arg(var, char*);
+
+
+				inputIdx = 0; 
+
+				for(  ; inputIdx < inputSize ; inputIdx ++)
+				{
+					*curp = in_buf[inputIdx];
+					curp ++;
+				}
+
+				*curp = '\0';
+				res ++;
+				
+			}
+			else
+			{
+				kprintf("no\n");
+			}
+		}
+		else
+		{
+			continue;
+		}
+
+
+
+	}
+
+
+
+	va_end(var);
+
 	return res;
 }
 
