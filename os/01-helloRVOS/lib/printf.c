@@ -1,7 +1,7 @@
 #include "os.h"
 
 /*
- * ref: https://github.com/cccriscv/mini-riscv-os/blob/master/05-Preemptive/lib.c
+ * ref: https://github.com/oinishere/os-homework.git
  */
 
 static int _vsnprintf(char * out, size_t n, const char* s, va_list vl)
