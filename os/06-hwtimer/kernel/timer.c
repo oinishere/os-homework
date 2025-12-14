@@ -31,7 +31,10 @@ void timer_init()
 void timer_handler() 
 {
 	_tick++;
-	kprintf("tick: %d\n", _tick);
+
+
+
+	kprintf("%2d:%2d:%2d\r", _tick/3600 , _tick%3600/60 , _tick%60);
 
 	timer_load(SYSTEM_TICK);
 }
