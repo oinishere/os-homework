@@ -66,7 +66,7 @@ static int _vsnprintf(char * out, size_t n, const char* s, va_list vl)
 			case 's': {
 				const char* s2 = va_arg(vl, const char*);
 				while (*s2) {
-					if (out && pos < n) {
+					if (out && pos < n) { 
 						out[pos] = *s2;
 					}
 					pos++;
